@@ -6,6 +6,8 @@
 
 Arduino_OV767X	KEYWORD1
 
+Camera	KEYWORD1
+
 #######################################
 # Methods and Functions 
 #######################################	
@@ -13,6 +15,27 @@ Arduino_OV767X	KEYWORD1
 begin	KEYWORD2
 end	KEYWORD2
 
+width	KEYWORD2
+height	KEYWORD2
+bitsPerPixel	KEYWORD2
+
+readFrame	KEYWORD2
+
+testPattern	KEYWORD2
+noTestPattern	KEYWORD2
+
+setPins	KEYWORD2
+
 #######################################
 # Constants
 #######################################
+
+YUV422	LITERAL1
+RGB444	LITERAL1
+RGB565	LITERAL1
+SBGGR8	LITERAL1
+
+VGA	LITERAL1
+CIF	LITERAL1
+QVGA	LITERAL1
+QCIF	LITERAL1
