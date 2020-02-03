@@ -18,6 +18,7 @@
       - SIOC connected to A5
       - SIOD connected to A4
       - VSYNC connected to 8
+      - HREF connected to 10
       - PCLK connected to 12
       - XCLK connected to 9
       - D7 connected to 7

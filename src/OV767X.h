@@ -10,6 +10,7 @@
 #include <Arduino.h>
 
 #define OV7670_VSYNC 8
+#define OV7670_HREF 10
 #define OV7670_PLK   12
 #define OV7670_XCLK  9
 #define OV7670_D0    0
@@ -70,7 +71,7 @@ public:
   void autoExposure();
 
   // must be called before .begin()
-  void setPins(int vsync, int pclkPin, int xclk, const int dpins[8]);
+  void setPins(int vsync, int href, int pclk, int xclk, const int dpins[8]);
 
 private:
   void beginXClk();
@@ -78,6 +79,7 @@ private:
 
 private:
   int _vsyncPin;
+  int _hrefPin;
   int _pclkPin;
   int _xclkPin;
   int _dPins[8];
@@ -89,9 +91,11 @@ private:
   void* _ov7670;
 
   volatile uint32_t* _vsyncPort;
-  volatile uint32_t _vsyncMask;
+  uint32_t _vsyncMask;
+  volatile uint32_t* _hrefPort;
+  uint32_t _hrefMask;
   volatile uint32_t* _pclkPort;
-  volatile uint32_t _pclkMask;
+  uint32_t _pclkMask;
   volatile uint32_t* _dataPorts[8];
   uint32_t _dataMasks[8];
 

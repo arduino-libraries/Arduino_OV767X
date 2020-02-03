@@ -55,7 +55,7 @@ OV767X::OV767X() :
   _saturation(128),
   _hue(0)
 {
-  setPins(OV7670_VSYNC, OV7670_PLK, OV7670_XCLK, OV760_D);
+  setPins(OV7670_VSYNC, OV7670_HREF, OV7670_PLK, OV7670_XCLK, OV760_D);
 }
 
 OV767X::~OV767X()
@@ -123,6 +123,7 @@ int OV767X::begin(int resolution, int format, int fps)
   }
 
   pinMode(_vsyncPin, INPUT);
+  pinMode(_hrefPin, INPUT);
   pinMode(_pclkPin, INPUT);
   pinMode(_xclkPin, OUTPUT);
 
@@ -132,6 +133,8 @@ int OV767X::begin(int resolution, int format, int fps)
 
   _vsyncPort = portInputRegister(digitalPinToPort(_vsyncPin));
   _vsyncMask = digitalPinToBitMask(_vsyncPin);
+  _hrefPort = portInputRegister(digitalPinToPort(_hrefPin));
+  _hrefMask = digitalPinToBitMask(_hrefPin);
   _pclkPort = portInputRegister(digitalPinToPort(_pclkPin));
   _pclkMask = digitalPinToBitMask(_pclkPin);
 
@@ -204,23 +207,29 @@ void OV767X::readFrame(void* buffer)
   noInterrupts();
 
   uint8_t* b = (uint8_t*)buffer;
-  int numBytes = _width * _height * _bitsPerPixel;
+  int bytesPerRow = _width * _bitsPerPixel;
 
   while ((*_vsyncPort & _vsyncMask) == 0); // wait for HIGH
   while ((*_vsyncPort & _vsyncMask) != 0); // wait for LOW
 
-  while (numBytes--) {
-    while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
+  for (int i = 0; i < _height; i++) {
+    while ((*_hrefPort & _hrefMask) == 0); // wait for HIGH
 
-    uint8_t in = 0;
+    for (int j = 0; j < bytesPerRow; j++) {
+      while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
 
-    for (int k = 0; k < 8; k++) {
-      bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
+      uint8_t in = 0;
+
+      for (int k = 0; k < 8; k++) {
+        bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
+      }
+
+      *b++ = in;
+
+      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
     }
 
-    *b++ = in;
-
-    while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
+    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
   }
 
   interrupts();
@@ -300,10 +309,11 @@ void OV767X::autoExposure()
   ov7670_s_autoexp(_ov7670, 0 /* V4L2_EXPOSURE_AUTO */);
 }
 
-void OV767X::setPins(int vsync, int pclkPin, int xclk, const int dpins[8])
+void OV767X::setPins(int vsync, int href, int pclk, int xclk, const int dpins[8])
 {
   _vsyncPin = vsync;
-  _pclkPin = pclkPin;
+  _hrefPin = href;
+  _pclkPin = pclk;
   _xclkPin = xclk;
 
   memcpy(_dPins, dpins, sizeof(_dPins));
