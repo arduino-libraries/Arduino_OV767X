@@ -2,8 +2,8 @@
   OV767X - Camera Test Pattern
 
   This sketch waits for the letter 'c' on the Serial Monitor,
-  it then reads a frame from the OV7670 camera and prints the data
-  to the Serial Monitor as a hex string.
+  it then reads a frame from the OmniVision OV7670 camera and 
+  prints the data to the Serial Monitor as a hex string.
 
   The website https://rawpixels.net - can be used the visualize the data:
     width: 176

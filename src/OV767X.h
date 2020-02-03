@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * This file is part of the Arduino_OX7670 library.
+ * This file is part of the Arduino_OX767X library.
  * Copyright (c) 2020 Arduino SA. All rights reserved.
  */
 
@@ -32,10 +32,10 @@ enum
 
 enum
 {
-  VGA = 0,
-  CIF = 1,
-  QVGA = 2,
-  QCIF = 3
+  VGA = 0,  // 640x480
+  CIF = 1,  // 352x240
+  QVGA = 2, // 320x240
+  QCIF = 3. // 176x144
 };
 
 class OV767X
@@ -44,10 +44,10 @@ public:
   OV767X();
   virtual ~OV767X();
 
-  int begin(int resolution, int format, int fps);
+  int begin(int resolution, int format, int fps); // Supported FPS: 1, 5, 10, 15, 30
   void end();
 
-  // must be called after .begin():
+  // must be called after Camera.begin():
   int width() const;
   int height() const;
   int bitsPerPixel() const;
@@ -70,7 +70,7 @@ public:
   void setExposure(int exposure); // 0 - 65535
   void autoExposure();
 
-  // must be called before .begin()
+  // must be called before Camera.begin()
   void setPins(int vsync, int href, int pclk, int xclk, const int dpins[8]);
 
 private:

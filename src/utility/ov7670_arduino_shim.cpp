@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * This file is part of the Arduino_OX7670 library.
+ * This file is part of the Arduino_OX767X library.
  * Copyright (c) 2020 Arduino SA. All rights reserved.
  */
 #include <Arduino.h>
