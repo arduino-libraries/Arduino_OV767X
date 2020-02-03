@@ -1,8 +1,8 @@
 /*
-  OV767X - Camera Text Pattern
+  OV767X - Camera Test Pattern
 
-  This enables reads the test pattern from the OV7670 camera
-  and prints the data to the Serial Monitor as a hex string.
+  This sketch enables the test pattern mode, then reads a frame from 
+  the OV7670 camera and prints the data to the Serial Monitor as a hex string.
 
   The website https://rawpixels.net - can be used the visualize the data:
     width: 176
@@ -57,11 +57,9 @@ void setup() {
   Serial.println(Camera.bitsPerPixel());
   Serial.println();
 
-//  Serial.println("Enabling test pattern mode");
-//  Serial.println();
-//  Camera.testPattern();
-
-delay(5000);
+  Serial.println("Enabling test pattern mode");
+  Serial.println();
+  Camera.testPattern();
 
   Serial.println("Reading frame");
   Serial.println();
