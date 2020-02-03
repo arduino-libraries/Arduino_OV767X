@@ -1,14 +1,14 @@
 /*
   OV767X - Camera Test Pattern
 
-  This sketch enables the test pattern mode, then reads a frame from 
+  This sketch enables the test pattern mode, then reads a frame from
   the OV7670 camera and prints the data to the Serial Monitor as a hex string.
 
   The website https://rawpixels.net - can be used the visualize the data:
     width: 176
     height: 144
     RGB565
-    Big Endian
+    Little Endian
 
   Circuit:
     - Arduino Nano 33 BLE board
@@ -35,7 +35,7 @@
 
 #include <Arduino_OV767X.h>
 
-byte frameBytes[176 * 144 * 2]; // QCIF: 176x144 X 2 bytes per pixel (RGB565)
+unsigned short pixels[176 * 144]; // QCIF: 176x144 X 2 bytes per pixel (RGB565)
 
 void setup() {
   Serial.begin(9600);
@@ -64,16 +64,28 @@ void setup() {
 
   Serial.println("Reading frame");
   Serial.println();
-  Camera.readFrame(frameBytes);
+  Camera.readFrame(pixels);
 
-  for (unsigned int i = 0; i < sizeof(frameBytes); i++) {
-    byte b = frameBytes[i];
+  int numPixels = Camera.width() * Camera.height();
 
-    if (b < 16) {
+  for (int i = 0; i < numPixels; i++) {
+    unsigned short p = pixels[i];
+
+    if (p < 0x1000) {
       Serial.print('0');
     }
-    Serial.print(b, HEX);
+
+    if (p < 0x0100) {
+      Serial.print('0');
+    }
+
+    if (p < 0x0010) {
+      Serial.print('0');
+    }
+
+    Serial.print(p, HEX);
   }
+
   Serial.println();
 }
 
