@@ -147,7 +147,7 @@ int OV767X::begin(int resolution, int format, int fps)
 
   Wire.begin();
 
-  delay(100);
+  delay(1000);
 
   if (ov7670_detect(_ov7670)) {
     end();
