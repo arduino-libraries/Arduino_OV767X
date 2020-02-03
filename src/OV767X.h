@@ -10,7 +10,6 @@
 #include <Arduino.h>
 
 #define OV7670_VSYNC 8
-#define OV7670_HREF  10
 #define OV7670_PLK   12
 #define OV7670_XCLK  9
 #define OV7670_D0    0
@@ -47,23 +46,38 @@ public:
   int begin(int resolution, int format, int fps);
   void end();
 
+  // must be called after .begin():
   int width() const;
   int height() const;
   int bitsPerPixel() const;
 
   void readFrame(void* buffer);
 
-  void testPattern();
+  void testPattern(int pattern = 2);
   void noTestPattern();
 
-  void setPins(int vsync, int hrefPin, int pclkPin, int xclk, const int dpins[8]);
+  void setSaturation(int saturation); // 0 - 255
+  void setHue(int hue); // -180 - 180
+  void setBrightness(int brightness); // 0 - 255
+  void setContrast(int contrast); // 0 - 127
+  void horizontalFlip();
+  void noHorizontalFlip();
+  void verticalFlip();
+  void noVerticalFlip();
+  void setGain(int gain); // 0 - 255
+  void autoGain();
+  void setExposure(int exposure); // 0 - 65535
+  void autoExposure();
+
+  // must be called before .begin()
+  void setPins(int vsync, int pclkPin, int xclk, const int dpins[8]);
 
 private:
   void beginXClk();
+  void endXClk();
 
 private:
   int _vsyncPin;
-  int _hrefPin;
   int _pclkPin;
   int _xclkPin;
   int _dPins[8];
@@ -76,12 +90,13 @@ private:
 
   volatile uint32_t* _vsyncPort;
   volatile uint32_t _vsyncMask;
-  volatile uint32_t* _hrefPort;
-  volatile uint32_t _hrefMask;
   volatile uint32_t* _pclkPort;
   volatile uint32_t _pclkMask;
   volatile uint32_t* _dataPorts[8];
   uint32_t _dataMasks[8];
+
+  int _saturation;
+  int _hue;
 };
 
 extern OV767X Camera;

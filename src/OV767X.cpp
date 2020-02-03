@@ -30,7 +30,7 @@ extern "C" {
 
   int ov7670_reset(void*, uint32_t val);
   int ov7670_detect(void*);
-  void ov7670_configure(void*, int devtype, int format, int wsize, int clock_speed, int pll_bypass);
+  void ov7670_configure(void*, int devtype, int format, int wsize, int clock_speed, int pll_bypass, int pclk_hb_disable);
   int ov7670_s_power(void*, int on);
   int ov7675_set_framerate(void*, struct ov7670_fract *tpf);
 
@@ -51,9 +51,11 @@ const int OV760_D[8] = {
 };
 
 OV767X::OV767X() :
-  _ov7670(NULL)
+  _ov7670(NULL),
+  _saturation(128),
+  _hue(0)
 {
-  setPins(OV7670_VSYNC, OV7670_HREF, OV7670_PLK, OV7670_XCLK, OV760_D);
+  setPins(OV7670_VSYNC, OV7670_PLK, OV7670_XCLK, OV760_D);
 }
 
 OV767X::~OV767X()
@@ -65,8 +67,6 @@ OV767X::~OV767X()
 
 int OV767X::begin(int resolution, int format, int fps)
 {
-  // TODO: validate fps
-
   switch (resolution) {
     case VGA:
       _width = 640;
@@ -103,6 +103,17 @@ int OV767X::begin(int resolution, int format, int fps)
       return 0;
   }
 
+  switch (fps) {
+    case 1:
+    case 5:
+    case 10:
+    case 15:
+    case 30:
+      break;
+
+    default:
+      return 0;
+  }
 
   _ov7670 = ov7670_alloc();
   if (!_ov7670) {
@@ -112,7 +123,6 @@ int OV767X::begin(int resolution, int format, int fps)
   }
 
   pinMode(_vsyncPin, INPUT);
-  pinMode(_hrefPin, INPUT);
   pinMode(_pclkPin, INPUT);
   pinMode(_xclkPin, OUTPUT);
 
@@ -122,8 +132,6 @@ int OV767X::begin(int resolution, int format, int fps)
 
   _vsyncPort = portInputRegister(digitalPinToPort(_vsyncPin));
   _vsyncMask = digitalPinToBitMask(_vsyncPin);
-  _hrefPort = portInputRegister(digitalPinToPort(_hrefPin));
-  _hrefMask = digitalPinToBitMask(_hrefPin);
   _pclkPort = portInputRegister(digitalPinToPort(_pclkPin));
   _pclkMask = digitalPinToBitMask(_pclkPin);
 
@@ -136,7 +144,7 @@ int OV767X::begin(int resolution, int format, int fps)
 
   Wire.begin();
 
-  delay(500);
+  delay(100);
 
   if (ov7670_detect(_ov7670)) {
     end();
@@ -144,8 +152,8 @@ int OV767X::begin(int resolution, int format, int fps)
     return 0;
   }
 
-  ov7670_configure(_ov7670, 0 /*OV7670 = 0, OV7675 = 1*/, format, resolution, 16 /* MHz */, 0 /*pll bypass*/);
-
+  ov7670_configure(_ov7670, 0 /*OV7670 = 0, OV7675 = 1*/, format, resolution, 16 /* MHz */, 
+                    0 /*pll bypass*/, 1 /* pclk_hb_disable */);
 
   if (ov7670_s_power(_ov7670, 1)) {
     end();
@@ -156,7 +164,7 @@ int OV767X::begin(int resolution, int format, int fps)
   struct ov7670_fract tpf;
 
   tpf.numerator = 1;
-  tpf.denominator = 1;
+  tpf.denominator = fps;
 
   ov7675_set_framerate(_ov7670, &tpf);
 
@@ -165,7 +173,7 @@ int OV767X::begin(int resolution, int format, int fps)
 
 void OV767X::end()
 {
-  // TODO: disable xclk
+  endXClk();
 
   pinMode(_xclkPin, INPUT);
 
@@ -196,38 +204,31 @@ void OV767X::readFrame(void* buffer)
   noInterrupts();
 
   uint8_t* b = (uint8_t*)buffer;
-  int bytesPerRow = _width * _bitsPerPixel;
+  int numBytes = _width * _height * _bitsPerPixel;
 
   while ((*_vsyncPort & _vsyncMask) == 0); // wait for HIGH
   while ((*_vsyncPort & _vsyncMask) != 0); // wait for LOW
 
-  for (int i = 0; i < _height; i++) {
-    while ((*_hrefPort & _hrefMask) == 0); // wait for HIGH
+  while (numBytes--) {
+    while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
 
-    for (int j = 0; j < bytesPerRow; j++) {
-      while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
+    uint8_t in = 0;
 
-      uint8_t in = 0;
-
-      for (int k = 0; k < 8; k++) {
-        bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
-      }
-
-      *b = in;
-      b++;
-
-      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
+    for (int k = 0; k < 8; k++) {
+      bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
     }
 
-    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
+    *b++ = in;
+
+    while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
   }
 
   interrupts();
 }
 
-void OV767X::testPattern()
+void OV767X::testPattern(int pattern)
 {
-  ov7670_s_test_pattern(_ov7670, 2);
+  ov7670_s_test_pattern(_ov7670, pattern);
 }
 
 void OV767X::noTestPattern()
@@ -235,10 +236,73 @@ void OV767X::noTestPattern()
   ov7670_s_test_pattern(_ov7670, 0);
 }
 
-void OV767X::setPins(int vsync, int hrefPin, int pclkPin, int xclk, const int dpins[8])
+void OV767X::setSaturation(int saturation)
+{
+  _saturation = saturation;
+
+  ov7670_s_sat_hue(_ov7670, _saturation, _hue);
+}
+
+void OV767X::setHue(int hue)
+{
+  _hue = hue;
+
+   ov7670_s_sat_hue(_ov7670, _saturation, _hue);
+}
+
+void OV767X::setBrightness(int brightness)
+{
+  ov7670_s_brightness(_ov7670, brightness);
+}
+
+void OV767X::setContrast(int contrast)
+{
+  ov7670_s_contrast(_ov7670, contrast);
+}
+
+void OV767X::horizontalFlip()
+{
+  ov7670_s_hflip(_ov7670, 1);
+}
+
+void OV767X::noHorizontalFlip()
+{
+  ov7670_s_hflip(_ov7670, 0);
+}
+
+void OV767X::verticalFlip()
+{
+  ov7670_s_vflip(_ov7670, 1);
+}
+
+void OV767X::noVerticalFlip()
+{
+  ov7670_s_vflip(_ov7670, 0);
+}
+
+void OV767X::setGain(int gain)
+{
+  ov7670_s_gain(_ov7670, gain);
+}
+
+void OV767X::autoGain()
+{
+  ov7670_s_autogain(_ov7670, 1);
+}
+
+void OV767X::setExposure(int exposure)
+{
+  ov7670_s_exp(_ov7670, exposure);
+}
+
+void OV767X::autoExposure()
+{
+  ov7670_s_autoexp(_ov7670, 0 /* V4L2_EXPOSURE_AUTO */);
+}
+
+void OV767X::setPins(int vsync, int pclkPin, int xclk, const int dpins[8])
 {
   _vsyncPin = vsync;
-  _hrefPin = hrefPin;
   _pclkPin = pclkPin;
   _xclkPin = xclk;
 
@@ -247,21 +311,20 @@ void OV767X::setPins(int vsync, int hrefPin, int pclkPin, int xclk, const int dp
 
 void OV767X::beginXClk()
 {
-  pinMode(_xclkPin, OUTPUT);
+  // Generates 16 MHz signal using I2S peripheral
+  NRF_I2S->CONFIG.MCKEN = (I2S_CONFIG_MCKEN_MCKEN_ENABLE << I2S_CONFIG_MCKEN_MCKEN_Pos);
+  NRF_I2S->CONFIG.MCKFREQ = I2S_CONFIG_MCKFREQ_MCKFREQ_32MDIV2  << I2S_CONFIG_MCKFREQ_MCKFREQ_Pos;
+  NRF_I2S->CONFIG.MODE = I2S_CONFIG_MODE_MODE_MASTER << I2S_CONFIG_MODE_MODE_Pos;
 
-  NRF_GPIOTE->CONFIG[0] = GPIOTE_CONFIG_MODE_Task << GPIOTE_CONFIG_MODE_Pos |
-                        GPIOTE_CONFIG_POLARITY_Toggle << GPIOTE_CONFIG_POLARITY_Pos |
-                        digitalPinToPinName(_xclkPin) << GPIOTE_CONFIG_PSEL_Pos |
-                        GPIOTE_CONFIG_OUTINIT_Low << GPIOTE_CONFIG_OUTINIT_Pos;
-  //Configure timer
-  NRF_TIMER1->PRESCALER = 0;  
-  NRF_TIMER1->CC[0] = 1;  // Adjust the output frequency by adjusting the CC.
-  NRF_TIMER1->SHORTS = TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos;
-  NRF_TIMER1->TASKS_START = 1;
-  //Configure PPI
-  NRF_PPI->CH[0].EEP = (uint32_t) &NRF_TIMER1->EVENTS_COMPARE[0];
-  NRF_PPI->CH[0].TEP = (uint32_t) &NRF_GPIOTE->TASKS_OUT[0];
-  NRF_PPI->CHENSET = PPI_CHENSET_CH0_Enabled << PPI_CHENSET_CH0_Pos;
+  NRF_I2S->PSEL.MCK = (digitalPinToPinName(_xclkPin) << I2S_PSEL_MCK_PIN_Pos);
+
+  NRF_I2S->ENABLE = 1;
+  NRF_I2S->TASKS_START = 1;
+}
+
+void OV767X::endXClk()
+{
+  NRF_I2S->TASKS_STOP = 1;
 }
 
 OV767X Camera;

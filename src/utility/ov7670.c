@@ -1952,7 +1952,7 @@ void ov7670_free(void* p)
 	}
 }
 
-void ov7670_configure(struct v4l2_subdev *sd, int devtype, int format, int wsize, int clock_speed, int pll_bypass)
+void ov7670_configure(struct v4l2_subdev *sd, int devtype, int format, int wsize, int clock_speed, int pll_bypass, int pclk_hb_disable)
 {
 	struct ov7670_info *info = to_state(sd);
 
@@ -1961,6 +1961,7 @@ void ov7670_configure(struct v4l2_subdev *sd, int devtype, int format, int wsize
 	info->wsize = &info->devtype->win_sizes[wsize];
 	info->clock_speed = clock_speed;
 	info->pll_bypass = pll_bypass;
+	info->pclk_hb_disable = pclk_hb_disable;
 }
 
 #else

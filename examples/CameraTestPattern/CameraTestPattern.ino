@@ -18,7 +18,6 @@
       - SIOC connected to A5
       - SIOD connected to A4
       - VSYNC connected to 8
-      - HREF connected to 10
       - PCLK connected to 12
       - XCLK connected to 9
       - D7 connected to 7
@@ -44,7 +43,7 @@ void setup() {
   Serial.println("OV767X Test Pattern");
   Serial.println();
 
-  if (!Camera.begin(QCIF, RGB565, 30)) {
+  if (!Camera.begin(QCIF, RGB565, 1)) {
     Serial.println("Failed to initialize camera!");
     while (1);
   }
@@ -58,9 +57,11 @@ void setup() {
   Serial.println(Camera.bitsPerPixel());
   Serial.println();
 
-  Serial.println("Enabling test pattern mode");
-  Serial.println();
-  Camera.testPattern();
+//  Serial.println("Enabling test pattern mode");
+//  Serial.println();
+//  Camera.testPattern();
+
+delay(5000);
 
   Serial.println("Reading frame");
   Serial.println();

@@ -24,6 +24,19 @@ readFrame	KEYWORD2
 testPattern	KEYWORD2
 noTestPattern	KEYWORD2
 
+setSaturation	KEYWORD2
+setHue	KEYWORD2
+setBrightness	KEYWORD2
+setContrast	KEYWORD2
+horizontalFlip	KEYWORD2
+noHorizontalFlip	KEYWORD2
+verticalFlip	KEYWORD2
+noVerticalFlip	KEYWORD2
+setGain	KEYWORD2
+autoGain	KEYWORD2
+setExposure	KEYWORD2
+autoExposure	KEYWORD2
+
 setPins	KEYWORD2
 
 #######################################
