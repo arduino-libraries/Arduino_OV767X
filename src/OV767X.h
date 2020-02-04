@@ -35,7 +35,7 @@ enum
   VGA = 0,  // 640x480
   CIF = 1,  // 352x240
   QVGA = 2, // 320x240
-  QCIF = 3. // 176x144
+  QCIF = 3,  // 176x144
 };
 
 class OV767X
@@ -51,6 +51,7 @@ public:
   int width() const;
   int height() const;
   int bitsPerPixel() const;
+  int bytesPerPixel() const;
 
   void readFrame(void* buffer);
 
@@ -86,7 +87,7 @@ private:
 
   int _width;
   int _height;
-  int _bitsPerPixel;
+  int _bytesPerPixel;
 
   void* _ov7670;
 

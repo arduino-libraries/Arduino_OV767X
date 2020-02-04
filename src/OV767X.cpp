@@ -96,7 +96,7 @@ int OV767X::begin(int resolution, int format, int fps)
     case YUV422:
     case RGB444:
     case RGB565:
-      _bitsPerPixel = 2;
+      _bytesPerPixel = 2;
       break;
 
     default:
@@ -199,7 +199,12 @@ int OV767X::height() const
 
 int OV767X::bitsPerPixel() const
 {
-  return _bitsPerPixel;
+  return _bytesPerPixel * 8;
+}
+
+int OV767X::bytesPerPixel() const
+{
+  return _bytesPerPixel;
 }
 
 void OV767X::readFrame(void* buffer)
@@ -207,7 +212,7 @@ void OV767X::readFrame(void* buffer)
   noInterrupts();
 
   uint8_t* b = (uint8_t*)buffer;
-  int bytesPerRow = _width * _bitsPerPixel;
+  int bytesPerRow = _width * _bytesPerPixel;
 
   while ((*_vsyncPort & _vsyncMask) == 0); // wait for HIGH
   while ((*_vsyncPort & _vsyncMask) != 0); // wait for LOW

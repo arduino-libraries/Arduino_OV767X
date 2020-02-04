@@ -18,6 +18,7 @@ end	KEYWORD2
 width	KEYWORD2
 height	KEYWORD2
 bitsPerPixel	KEYWORD2
+bytesPerPixel	KEYWORD2
 
 readFrame	KEYWORD2
 
