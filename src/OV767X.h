@@ -27,7 +27,8 @@ enum
   YUV422 = 0,
   RGB444 = 1,
   RGB565 = 2,
-//  SBGGR8 = 3
+  // SBGGR8 = 3
+  GRAYSCALE = 4
 };
 
 enum
