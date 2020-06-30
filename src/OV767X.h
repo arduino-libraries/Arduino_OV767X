@@ -88,6 +88,7 @@ private:
   int _width;
   int _height;
   int _bytesPerPixel;
+  bool _grayscale;
 
   void* _ov7670;
 
