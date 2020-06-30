@@ -92,12 +92,19 @@ int OV767X::begin(int resolution, int format, int fps)
       return 0;
   }
 
+  _grayscale = false;
   switch (format) {
     case YUV422:
     case RGB444:
     case RGB565:
       _bytesPerPixel = 2;
       break;
+      
+    case GRAYSCALE:
+      format = YUV422;    // We use YUV422 but discard U and V bytes
+      _bytesPerPixel = 2; // 2 input bytes per pixel of which 1 is discarded
+      _grayscale = true;
+      break;      
 
     default:
       return 0;
@@ -229,7 +236,9 @@ void OV767X::readFrame(void* buffer)
         bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
       }
 
+      if (!(j & 1) || !_grayscale) {
       *b++ = in;
+      }
 
       while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
     }
