@@ -27,7 +27,8 @@ enum
   YUV422 = 0,
   RGB444 = 1,
   RGB565 = 2,
-//  SBGGR8 = 3
+  // SBGGR8 = 3
+  GRAYSCALE = 4
 };
 
 enum
@@ -88,6 +89,7 @@ private:
   int _width;
   int _height;
   int _bytesPerPixel;
+  bool _grayscale;
 
   void* _ov7670;
 
