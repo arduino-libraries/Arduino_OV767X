@@ -145,11 +145,6 @@ int OV767X::begin(int resolution, int format, int fps)
   _pclkPort = portInputRegister(digitalPinToPort(_pclkPin));
   _pclkMask = digitalPinToBitMask(_pclkPin);
 
-  for (int i = 0; i < 8; i++) {
-    _dataPorts[i] = portInputRegister(digitalPinToPort(_dPins[i]));
-    _dataMasks[i] = digitalPinToBitMask(_dPins[i]);
-  }
-
   beginXClk();
 
   Wire.begin();
@@ -214,36 +209,66 @@ int OV767X::bytesPerPixel() const
   return _bytesPerPixel;
 }
 
+//
+// Optimized Data Reading Explanation:
+//
+// In order to keep up with the data rate of 5 FPS, the inner loop that reads
+// data from the camera board needs to be as quick as possible. The 64Mhz ARM
+// Cortex-M4 in the Nano 33 would not be able to keep up if we read each bit
+// one at a time from the various GPIO pins and combined them into a byte.
+// Instead, we chose specific GPIO pins which all occupy a single GPIO "PORT"
+// In this case, P1 (The Nano 33 exposes some bits of P0 and some of P1).
+// The bits on P1 are not connected to sequential GPIO pins, so the order
+// chosen may look a bit odd. Below is a map showing the GPIO pin numbers
+// and the bit position they correspond with on P1 (bit 0 is on the right)
+//
+//    20-19-18-17-16-15-14-13-12-11-10-09-08-07-06-05-04-03-02-01-00  (bit)
+// ~ +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+// ~ |xx|xx|xx|xx|xx|04|06|05|03|02|01|xx|12|xx|xx|xx|xx|00|10|11|xx| (pin)
+// ~ +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+//
+// The most efficient way to read 8-bits of data with the arrangement above
+// is to wire the pins for P1 bits 2,3,10,11,12,13,14,15. This allows other
+// features such as SPI to still work and gives us 2 groups of contiguous
+// bits (0-1, 10-15). With 2 groups of bits, we can read, mask, shift and
+// OR them together to form an 8-bit byte with the minimum number of operations.
+//
 void OV767X::readFrame(void* buffer)
 {
+uint32_t ulPin = 33; // P1.xx set of GPIO is in 'pin' 32 and above
+NRF_GPIO_Type * port;
+
+  port = nrf_gpio_pin_port_decode(&ulPin);
+
   noInterrupts();
 
   uint8_t* b = (uint8_t*)buffer;
   int bytesPerRow = _width * _bytesPerPixel;
 
+  // Falling edge indicates start of frame
   while ((*_vsyncPort & _vsyncMask) == 0); // wait for HIGH
   while ((*_vsyncPort & _vsyncMask) != 0); // wait for LOW
 
   for (int i = 0; i < _height; i++) {
+  // rising edge indicates start of line
+    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
     while ((*_hrefPort & _hrefMask) == 0); // wait for HIGH
 
     for (int j = 0; j < bytesPerRow; j++) {
+      // rising edges clock each data byte
       while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
+      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
 
-      uint8_t in = 0;
+      uint32_t in = port->IN; // read all bits in parallel
 
-      for (int k = 0; k < 8; k++) {
-        bitWrite(in, k, (*_dataPorts[k] & _dataMasks[k]) != 0);
-      }
+      in >>= 2; // place bits 0 and 1 at the "bottom" of the register
+      in &= 0x3f03; // isolate the 8 bits we care about
+      in |= (in >> 6); // combine the upper 6 and lower 2 bits
 
       if (!(j & 1) || !_grayscale) {
-      *b++ = in;
+        *b++ = in;
       }
-
-      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
     }
-
-    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
   }
 
   interrupts();

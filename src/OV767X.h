@@ -10,17 +10,17 @@
 #include <Arduino.h>
 
 #define OV7670_VSYNC 8
-#define OV7670_HREF 10
-#define OV7670_PLK   12
+#define OV7670_HREF  A1
+#define OV7670_PLK   A0
 #define OV7670_XCLK  9
-#define OV7670_D0    0
-#define OV7670_D1    1
-#define OV7670_D2    2
-#define OV7670_D3    3
-#define OV7670_D4    4
+#define OV7670_D0    10
+#define OV7670_D1    0
+#define OV7670_D2    1
+#define OV7670_D3    2
+#define OV7670_D4    3
 #define OV7670_D5    5
 #define OV7670_D6    6
-#define OV7670_D7    7
+#define OV7670_D7    4
 
 enum
 {
@@ -99,8 +99,6 @@ private:
   uint32_t _hrefMask;
   volatile uint32_t* _pclkPort;
   uint32_t _pclkMask;
-  volatile uint32_t* _dataPorts[8];
-  uint32_t _dataMasks[8];
 
   int _saturation;
   int _hue;
