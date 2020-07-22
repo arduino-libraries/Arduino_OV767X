@@ -13,17 +13,17 @@
       - SIOC connected to A5
       - SIOD connected to A4
       - VSYNC connected to 8
-      - HREF connected to 10
-      - PCLK connected to 12
+      - HREF connected to A1
+      - PCLK connected to A0
       - XCLK connected to 9
-      - D7 connected to 7
+      - D7 connected to 4
       - D6 connected to 6
       - D5 connected to 5
-      - D4 connected to 4
-      - D3 connected to 3
-      - D2 connected to 2
-      - D1 connected to 1 / RX
-      - D0 connected to 0 / TX
+      - D4 connected to 3
+      - D3 connected to 2
+      - D2 connected to 0 / RX
+      - D1 connected to 1 / TX
+      - D0 connected to 10
 
   This example code is in the public domain.
 */

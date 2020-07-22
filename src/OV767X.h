@@ -14,8 +14,8 @@
 #define OV7670_PLK   A0
 #define OV7670_XCLK  9
 #define OV7670_D0    10
-#define OV7670_D1    0
-#define OV7670_D2    1
+#define OV7670_D1    1
+#define OV7670_D2    0
 #define OV7670_D3    2
 #define OV7670_D4    3
 #define OV7670_D5    5
