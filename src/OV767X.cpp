@@ -112,6 +112,9 @@ int OV767X::begin(int resolution, int format, int fps)
 
   switch (fps) {
     case 1:
+    case 2:
+    case 3:
+    case 4:
     case 5:
     case 10:
     case 15:
@@ -251,13 +254,11 @@ NRF_GPIO_Type * port;
 
   for (int i = 0; i < _height; i++) {
   // rising edge indicates start of line
-    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
     while ((*_hrefPort & _hrefMask) == 0); // wait for HIGH
 
     for (int j = 0; j < bytesPerRow; j++) {
       // rising edges clock each data byte
       while ((*_pclkPort & _pclkMask) != 0); // wait for LOW
-      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
 
       uint32_t in = port->IN; // read all bits in parallel
 
@@ -268,7 +269,9 @@ NRF_GPIO_Type * port;
       if (!(j & 1) || !_grayscale) {
         *b++ = in;
       }
+      while ((*_pclkPort & _pclkMask) == 0); // wait for HIGH
     }
+    while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
   }
 
   interrupts();
