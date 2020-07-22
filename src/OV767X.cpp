@@ -110,20 +110,8 @@ int OV767X::begin(int resolution, int format, int fps)
       return 0;
   }
 
-  switch (fps) {
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 10:
-    case 15:
-    case 30:
-      break;
-
-    default:
-      return 0;
-  }
+  if (fps < 1 || fps > 30)
+    return 0;
 
   _ov7670 = ov7670_alloc();
   if (!_ov7670) {
@@ -227,7 +215,7 @@ int OV767X::bytesPerPixel() const
 //
 //    20-19-18-17-16-15-14-13-12-11-10-09-08-07-06-05-04-03-02-01-00  (bit)
 // ~ +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-// ~ |xx|xx|xx|xx|xx|04|06|05|03|02|00|xx|12|xx|xx|xx|xx|01|10|11|xx| (pin)
+// ~ |xx|xx|xx|xx|xx|04|06|05|03|02|01|xx|12|xx|xx|xx|xx|00|10|11|xx| (pin)
 // ~ +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 //
 // The most efficient way to read 8-bits of data with the arrangement above
