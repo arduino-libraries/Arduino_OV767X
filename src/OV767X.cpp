@@ -110,7 +110,8 @@ int OV767X::begin(int resolution, int format, int fps)
       return 0;
   }
 
-  if (fps < 1 || fps > 30)
+// The only frame rates which work on the Nano 33 BLE are 1 and 5 FPS
+  if (fps != 1 && fps != 5)
     return 0;
 
   _ov7670 = ov7670_alloc();
