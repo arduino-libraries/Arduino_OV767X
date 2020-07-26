@@ -33,6 +33,11 @@
 int bytesPerFrame;
 int errors = 0;
 int count = 0;
+int bestTime = 100000;
+int worstTime = 0;
+int delayTime = 300;
+
+
 long timer = 0;
 Arduino_CRC32 crc32;
 
@@ -56,31 +61,35 @@ void setup() {
 }
 
 void loop() {
+
+  // sliding delay window to try different start times wrt camera VSYNC
+  if (delayTime>0) {delayTime=delayTime-10;}
+  delay(delayTime);
   
   // benchmarking
   timer = millis();
   Camera.readFrame(data);
   timer = millis() - timer;
-  Serial.print(timer);
-  Serial.println("ms ");
-
-  // error checking
-  if (error_checking) {
-  uint32_t const crc32_res = crc32.calc(data, bytesPerFrame);
-
-  Serial.print("0x");
-  Serial.print(crc32_res, HEX);
+  // Check if it is a best case or worse case time
+  bestTime = min(timer, bestTime);
+  worstTime = max(timer, worstTime);
 
   // Test against known checksum values (minor pixel variations at the start but were visually confirmed to be a good test pattern)
+  uint32_t const crc32_res = crc32.calc(data, bytesPerFrame);
   if (crc32_res != 0x15AB2939 && crc32_res != 0xD3EC95E && crc32_res != 0xB9C43ED9) {
     errors++;
   };
 
   count++;
+
   Serial.print(" errors:");
   Serial.print(errors);
   Serial.print("/");
-  Serial.println(count);
-  }
-
+  Serial.print(count);
+  Serial.print(" best:");
+  Serial.print(bestTime);
+  Serial.print("ms worst:");
+  Serial.print(worstTime);
+  Serial.println("ms");
+  
 }
