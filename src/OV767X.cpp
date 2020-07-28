@@ -88,6 +88,11 @@ int OV767X::begin(int resolution, int format, int fps)
       _height = 144;
       break;
 
+    case QQVGA:
+      _width = 160;
+      _height = 120;
+      break;
+
     default:
       return 0;
   }

@@ -36,6 +36,8 @@ struct v4l2_fract {
 #define QVGA_HEIGHT 240
 #define QCIF_WIDTH 176
 #define QCIF_HEIGHT 144
+#define QQVGA_WIDTH 160
+#define QQVGA_HEIGHT 120
 
 #define V4L2_EXPOSURE_AUTO 0
 
@@ -815,6 +817,21 @@ static struct regval_list ov7670_qcif_regs[] = {
 	{ 0xff, 0xff },
 };
 
+static struct regval_list ov7670_qqvga_regs[] = {
+	{ REG_COM3, COM3_DCWEN },
+	{ REG_COM14, 0x1a},
+    { 0x72, 0x22 },		// downsample by 4
+    { 0x73, 0xf2 },		// divide by 4
+	{ REG_HSTART, 0x16 },
+    { REG_HSTOP, 0x04 },
+    { REG_HREF, 0xa4 },
+    { REG_VSTART, 0x02 },
+    { REG_VSTOP, 0x7a },
+    { REG_VREF, 0x0a },
+    { 0xff, 0xff },	/* END MARKER */
+
+};
+
 static struct ov7670_win_size ov7670_win_sizes[] = {
 	/* VGA */
 	{
@@ -859,7 +876,19 @@ static struct ov7670_win_size ov7670_win_sizes[] = {
 		.vstart		=  14,
 		.vstop		= 494,
 		.regs		= ov7670_qcif_regs,
+	},
+	/* QQVGA */
+	{
+		.width		= QQVGA_WIDTH,
+		.height		= QQVGA_HEIGHT,
+		.com7_bit	= COM7_FMT_VGA, /* see comment above */
+		.hstart		= 0x16,	/* Empirically determined */
+		.hstop		= 0x04,
+		.vstart		= 0x02,
+		.vstop		= 0x7a,
+		.regs		= ov7670_qqvga_regs,
 	}
+
 };
 
 static struct ov7670_win_size ov7675_win_sizes[] = {

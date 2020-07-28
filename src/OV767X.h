@@ -37,6 +37,7 @@ enum
   CIF = 1,  // 352x240
   QVGA = 2, // 320x240
   QCIF = 3,  // 176x144
+  QQVGA = 4,  // 160x120
 };
 
 class OV767X
