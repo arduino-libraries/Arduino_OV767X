@@ -912,7 +912,7 @@ static struct ov7670_win_size ov7670_win_sizes[] = {
 static struct ov7670_win_size ov7675_win_sizes[] = {
 	/*
 	 * Values copied from ov7670_win_sizes and verified to work. 
-	 * The QCIF values were changed to center the cropped window.
+	 * The QCIF and QQVGA values were changed to center the cropped window.
 	 */
 	{
 		.width		= VGA_WIDTH,
