@@ -832,6 +832,24 @@ static struct regval_list ov7670_qqvga_regs[] = {
 
 };
 
+/*
+ * To center the QQVGA window on the OV7675 the REG_VSTART value was increased
+ */
+static struct regval_list ov7675_qqvga_regs[] = {
+    { REG_COM3, COM3_DCWEN },
+    { REG_COM14, 0x1a},
+    { 0x72, 0x22 },		// downsample by 4
+    { 0x73, 0xf2 },		// divide by 4
+    { REG_HSTART, 0x16 },
+    { REG_HSTOP, 0x04 },
+    { REG_HREF, 0xa4 },
+    { REG_VSTART, 0x22 }, //Different from OV7670
+    { REG_VSTOP, 0x7a },
+    { REG_VREF, 0x0a },
+    { 0xff, 0xff },	/* END MARKER */
+
+};
+
 static struct ov7670_win_size ov7670_win_sizes[] = {
 	/* VGA */
 	{
@@ -893,9 +911,8 @@ static struct ov7670_win_size ov7670_win_sizes[] = {
 
 static struct ov7670_win_size ov7675_win_sizes[] = {
 	/*
-	 * Currently, only VGA is supported. Theoretically it could be possible
-	 * to support CIF, QVGA and QCIF too. Taking values for ov7670 as a
-	 * base and tweak them empirically could be required.
+	 * Values copied from ov7670_win_sizes and verified to work. 
+	 * The QCIF and QQVGA values were changed to center the cropped window.
 	 */
 	{
 		.width		= VGA_WIDTH,
@@ -906,6 +923,50 @@ static struct ov7670_win_size ov7675_win_sizes[] = {
 		.vstart		=  14,  /* Empirically determined */
 		.vstop		= 494,
 		.regs		= NULL,
+	},
+		/* CIF */
+	{
+		.width		= CIF_WIDTH,
+		.height		= CIF_HEIGHT,
+		.com7_bit	= COM7_FMT_CIF,
+		.hstart		= 170,	/* Copied from ov7670 and verified*/
+		.hstop		=  90,
+		.vstart		=  14,
+		.vstop		= 494,
+		.regs		= NULL,
+	},
+	/* QVGA */
+	{
+		.width		= QVGA_WIDTH,
+		.height		= QVGA_HEIGHT,
+		.com7_bit	= COM7_FMT_QVGA,
+		.hstart		= 168,	/* Copied from ov7670 and verified*/
+		.hstop		=  24,
+		.vstart		=  12,
+		.vstop		= 492,
+		.regs		= NULL,
+	},
+	/* QCIF */
+	{
+		.width		= QCIF_WIDTH,
+		.height		= QCIF_HEIGHT,
+		.com7_bit	= COM7_FMT_VGA, /* see comment above */
+		.hstart		= 250,	/* Empirically determined and different from ov7670*/
+		.hstop		=  24,
+		.vstart		= 120,
+		.vstop		= 180,
+		.regs		= ov7670_qcif_regs,
+	},
+	/* QQVGA */
+	{
+		.width		= QQVGA_WIDTH,
+		.height		= QQVGA_HEIGHT,
+		.com7_bit	= COM7_FMT_VGA, /* see comment above */
+		.hstart		= 0x16,	/* Empirically determined and different from ov7670*/
+		.hstop		= 0x04,
+		.vstart		= 0x22, /* These values seem to be overridden by the regs */
+		.vstop		= 0x7a,
+		.regs		= ov7675_qqvga_regs,/* changed to better center on OV7675 */
 	}
 };
 
