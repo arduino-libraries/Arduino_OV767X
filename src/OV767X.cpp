@@ -210,7 +210,7 @@ int OV767X::bytesPerPixel() const
 // Optimized Data Reading Explanation:
 //
 // In order to keep up with the data rate of 5 FPS, the inner loop that reads
-// data from the camera board needs to be as quick as possible. The 64Mhz ARM
+// data from the camera board needs to be as quick as possible. The 64 Mhz ARM
 // Cortex-M4 in the Nano 33 would not be able to keep up if we read each bit
 // one at a time from the various GPIO pins and combined them into a byte.
 // Instead, we chose specific GPIO pins which all occupy a single GPIO "PORT"

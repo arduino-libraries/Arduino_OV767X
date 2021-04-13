@@ -2,7 +2,7 @@
   OV767X - Camera Capture Raw Bytes
 
   This sketch reads a frame from the OmniVision OV7670 camera
-  and writes the bytes to the Serial port. Use the Procesing
+  and writes the bytes to the Serial port. Use the Processing
   sketch in the extras folder to visualize the camera output.
 
   Circuit:
