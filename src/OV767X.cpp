@@ -8,6 +8,7 @@
 #include <Wire.h>
 
 #include "OV767X.h"
+#include "pinDefinitions.h"
 
 // if not defined in the variant
 #ifndef digitalPinToBitMask
