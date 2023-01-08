@@ -53,7 +53,7 @@ public:
   virtual ~OV767X();
 
   // Supported FPS: 1, 5, 10, 15, 30
-  int begin(int resolution, int format, int fps, int camera_name = OV7675); 
+  int begin(int resolution, int format, int fps, int camera_name = OV7670); 
   void end();
 
   // must be called after Camera.begin():
