@@ -65,7 +65,7 @@ OV767X::~OV767X()
   }
 }
 
-int OV767X::begin(int resolution, int format, int fps)
+int OV767X::begin(int resolution, int format, int fps, int camera_name)
 {
   switch (resolution) {
     case VGA:
@@ -154,8 +154,8 @@ int OV767X::begin(int resolution, int format, int fps)
     return 0;
   }
 
-  ov7670_configure(_ov7670, 0 /*OV7670 = 0, OV7675 = 1*/, format, resolution, 16 /* MHz */, 
-                    0 /*pll bypass*/, 1 /* pclk_hb_disable */);
+  ov7670_configure(_ov7670, camera_name /*OV7670 = 0, OV7675 = 1*/, format, resolution, 
+                    16 /* MHz */, 0 /*pll bypass*/, 1 /* pclk_hb_disable */);
 
   if (ov7670_s_power(_ov7670, 1)) {
     end();
@@ -198,12 +198,20 @@ int OV767X::height() const
 
 int OV767X::bitsPerPixel() const
 {
-  return _bytesPerPixel * 8;
+  if (_grayscale) {
+    return 8;
+  } else {
+    return _bytesPerPixel * 8;
+  }
 }
 
 int OV767X::bytesPerPixel() const
 {
-  return _bytesPerPixel;
+  if (_grayscale) {
+    return 1;
+  } else {
+    return _bytesPerPixel;
+  }
 }
 
 //
