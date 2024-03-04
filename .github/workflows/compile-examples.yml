@@ -34,6 +34,7 @@ jobs:
           - fqbn: arduino:mbed_nano:nano33ble
             platforms: |
               - name: arduino:mbed_nano
+            artifact-name-suffix: arduino-mbed_nano-nano33ble
 
     steps:
       - name: Checkout repository
@@ -59,4 +60,4 @@ jobs:
         with:
           if-no-files-found: error
           path: ${{ env.SKETCHES_REPORTS_PATH }}
-          name: ${{ env.SKETCHES_REPORTS_PATH }}
+          name: sketches-report-${{ matrix.board.artifact-name-suffix }}
